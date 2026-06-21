@@ -40,8 +40,9 @@ export async function run(queue) {
 }
 
 // Start only when run directly, not when imported by tests.
+// Welcome events are produced by the backend (see backend/app/events.py).
 if (import.meta.url === `file://${process.argv[1]}`) {
   const queue = new Queue();
-  queue.enqueue({ to: "admin@example.com", body: "Welcome aboard" });
+  queue.enqueue({ recipient: "admin@example.com", message: "Welcome aboard" });
   run(queue);
 }

@@ -1,10 +1,15 @@
 """User-facing routes: register, list, read, delete."""
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+import logging
+
 from . import auth, db
 from .config import DEFAULT_PAGE_SIZE
-from .models import Role, UserCreate, UserInDB, UserPublic
+from .events import build_welcome_event
+from .models import Role, UserCreate, UserInDB, UserPublic, UserUpdate
 from .utils import clamp_page_size
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -25,6 +30,8 @@ def register(payload: UserCreate) -> UserPublic:
         password_hash=auth.hash_password(payload.password),
         role=Role.USER,
     )
+    event = build_welcome_event(user)
+    logger.info("queued welcome notification: %s", event)
     return _to_public(user)
 
 
@@ -48,6 +55,22 @@ def get_user(user_id: int, current: UserInDB = Depends(auth.get_current_user)) -
     user = db.get_by_id(user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return _to_public(user)
+
+
+@router.patch("/{user_id}", response_model=UserPublic)
+def update_user(
+    user_id: int,
+    payload: UserUpdate,
+    current: UserInDB = Depends(auth.get_current_user),
+) -> UserPublic:
+    """Update a user's profile. Users may update themselves; admins may update anyone."""
+    if current.id != user_id and current.role != Role.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    user = db.get_by_id(user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    user.full_name = payload.full_name
     return _to_public(user)
 
 

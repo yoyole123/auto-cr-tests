@@ -31,6 +31,11 @@ class UserInDB(UserPublic):
     password_hash: str
 
 
+class UserUpdate(BaseModel):
+    """Payload for updating a user's profile."""
+    full_name: str = Field(min_length=1, max_length=120)
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

@@ -38,6 +38,13 @@ export function listUsers(page = 1, pageSize = 20): Promise<User[]> {
   return request<User[]>(`/users?page=${page}&page_size=${pageSize}`);
 }
 
+export function updateUser(id: number, fullName: string): Promise<User> {
+  return request<User>(`/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ fullName }),
+  });
+}
+
 export function deleteUser(id: number): Promise<void> {
   return request<void>(`/users/${id}`, { method: "DELETE" });
 }
