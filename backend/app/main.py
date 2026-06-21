@@ -3,7 +3,7 @@ import logging
 
 from fastapi import FastAPI
 
-from . import auth, db, users
+from . import auth, bulk, db, users
 from .middleware import RequestLogMiddleware
 from .models import LoginRequest, Role, TokenResponse
 
@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="auto-cr-tests backend")
 app.add_middleware(RequestLogMiddleware)
 app.include_router(users.router)
+app.include_router(bulk.router)
 
 
 @app.on_event("startup")
