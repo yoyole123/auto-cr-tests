@@ -1,0 +1,23 @@
+# AI PR review (David Biton's auto-cr) - shared template lives in
+# Devops_BuildTemplates/ai-pr-review/. Wiki: AI-Powered PR Review Pipeline (id 7083).
+# Updates to the prompt rules and pipeline logic flow automatically from main.
+trigger: none
+
+pr:
+  autoCancel: true
+  branches:
+    include:
+      - '*'
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: Au10tix/Devops_BuildTemplates
+      ref: refs/heads/main
+
+jobs:
+  - template: ai-pr-review/shared-pr-review.yml@templates
+    parameters:
+      reviewMode: incremental
+      maxTokens: 8192
