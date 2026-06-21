@@ -4,14 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from . import auth, db
 from .config import DEFAULT_PAGE_SIZE
 from .models import Role, UserCreate, UserInDB, UserPublic
-from .utils import clamp_page_size
+from .serializers import to_public as _to_public
+from .utils import clamp_page_size, page_bounds
 
 router = APIRouter(prefix="/users", tags=["users"])
-
-
-def _to_public(user: UserInDB) -> UserPublic:
-    """Strip the password hash before returning a user."""
-    return UserPublic(**user.model_dump(exclude={"password_hash"}))
 
 
 @router.post("", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
@@ -36,8 +32,8 @@ def list_users(
 ) -> list[UserPublic]:
     """List users, paginated. Requires authentication."""
     size = clamp_page_size(page_size)
-    offset = (page - 1) * size
-    return [_to_public(u) for u in db.list_users(offset, size)]
+    offset, limit = page_bounds(page, size)
+    return [_to_public(u) for u in db.list_users(offset, limit)]
 
 
 @router.get("/{user_id}", response_model=UserPublic)

@@ -18,6 +18,11 @@ def clamp_page_size(requested: int | None) -> int:
     return max(1, min(requested, MAX_PAGE_SIZE))
 
 
+def page_bounds(page: int, page_size: int) -> tuple[int, int]:
+    """Return the (offset, limit) for a 1-based page number and size."""
+    return (page - 1) * page_size, page_size
+
+
 def mask_email(email: str) -> str:
     """Mask the local part of an email for logging, e.g. j***@example.com."""
     local, _, domain = email.partition("@")
